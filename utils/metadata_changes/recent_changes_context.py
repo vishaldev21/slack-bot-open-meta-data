@@ -2,23 +2,21 @@ import json
 from .request import get_data
 
 
-def get_changes(input: str) -> list | None:
-    path = "/api/v1/tables/"
-    table_data, error = get_data(f"{path}name/{input}")
+def get_changes(entity, fqn: str) -> list | str:
+    path = f"{entity}/name/{fqn}"
+    entity_data, error = get_data(path)
     if error is not None:
-        print(f"Error: {error}")
-        return None
-    if table_data is None:
-        print("No data found")
-        return None
-    table_id = table_data["id"]
-    version_data, err = get_data(f"{path}{table_id}/versions")
+        if error["status_code"] == 404 or error["status_code"] == 403:
+            return "Please provide correct Fully Qualified Name"
+    if entity_data is None:
+        return "No changes done"
+    entity_id = entity_data["id"]
+    version_path = f"{entity}/{entity_id}/versions"
+    version_data, err = get_data(version_path)
     if err is not None:
-        print(f"Error: {err}")
-        return None
+        return "Unexpected failure"
     if version_data is None:
-        print("No data found")
-        return None
+        return "Unexpected failure"
 
     versions = version_data.get("versions")
     if versions is not None and len(versions) >= 2:
@@ -44,7 +42,9 @@ def get_changes(input: str) -> list | None:
             if len(field_updated) == 0:
                 updated_result += "No fields updated\n"
             for item in field_updated:
-                updated_result += f"{item['updatedValue']}\n"
+                updated_result += (
+                    f"Old value: {item['oldValue']}, New value: {item['newValue']}\n"
+                )
 
         if (
             "fieldsDeleted" in prev_version["changeDescription"]
@@ -59,14 +59,13 @@ def get_changes(input: str) -> list | None:
         result = [added_result, updated_result, deleted_result]
         return result
     else:
-        return None
+        return "No changes has been done"
 
 
-def get_changes_wrapper(input: str) -> str:
-    entity_changes = get_changes(input)
-    if entity_changes is None:
-        print("No changes found")
-        return "No changes found"
+def get_changes_wrapper(entity, fqn: str) -> str:
+    entity_changes = get_changes(entity, fqn)
+    if type(entity_changes) is str:
+        return entity_changes
     else:
         result = ""
         for change in entity_changes:
