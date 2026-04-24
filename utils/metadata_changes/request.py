@@ -18,7 +18,6 @@ def get_data(url: str):
         r.raise_for_status()
         status_code = r.status_code
         data = r.json()
-        print(data)
         return data, None
     except Exception as e:
         return None, {"error": e, "status_code": status_code}

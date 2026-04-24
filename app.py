@@ -26,7 +26,11 @@ def orphan_entity(ack, respond, command):
     entityType, fqn = user_input.split()
     entityType = entityType.strip()
     fqn = fqn.strip()
-    if get_orphan_entity(entityType, fqn):
-        respond(f"{entityType} {fqn} is an orphan entity.")
-    else:
-        respond(f"{entityType} {fqn} is not an orphan entity.")
+    data = get_orphan_entity(entityType, fqn)
+    if type(data) is str:
+        respond(data)
+    elif type(data) is bool:
+        if data:
+            respond(f"{entityType} {fqn} is an orphan entity.")
+        else:
+            respond(f"{entityType} {fqn} is not an orphan entity.")
