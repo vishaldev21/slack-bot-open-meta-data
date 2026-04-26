@@ -1,9 +1,12 @@
 import os
 from slack_bolt import App
-from utils import get_changes_wrapper
+from services import get_changes_wrapper
 from dotenv import load_dotenv
-from utils import get_orphan_entity
-from utils import get_impact_wrapper, get_impact #for impact analysis
+from services import get_orphan_entity
+from services import get_impact_wrapper, get_impact  # for impact analysis
+import asyncio
+from services import build_agent_graph
+
 
 load_dotenv()
 
@@ -24,12 +27,11 @@ def hello(ack, respond, command):
 def impact(ack, respond, command):
     ack()
     [entity, fqn] = command.get("text").split(" ")
-    entity = entity.strip()  
+    entity = entity.strip()
     fqn = fqn.strip()
-    result = get_impact(entity,fqn)
+    result = get_impact(entity, fqn)
     str_result = get_impact_wrapper(result)
     respond(str_result)
-
 
 
 @app.command("/orphan-entity")
@@ -47,4 +49,11 @@ def orphan_entity(ack, respond, command):
             respond(f"{entityType} {fqn} is an orphan entity.")
         else:
             respond(f"{entityType} {fqn} is not an orphan entity.")
-           
+
+
+@app.command("/check-issue")
+def check_issue(ack, respond):
+    ack()
+    result = asyncio.run(build_agent_graph())
+    message = f"ISSUE: {result.get('issue_number')}\n\n\nFINDINGS: {result.get('analysis')}\n\n\nSUGGESTIONS: {result.get('fix_suggestion')}"
+    respond(message)

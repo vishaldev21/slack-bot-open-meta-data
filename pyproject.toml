@@ -7,6 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
     "cachetools>=7.0.5",
     "httpx>=0.28.1",
+    "langchain>=1.2.15",
+    "langchain-mcp-adapters>=0.2.2",
+    "langchain-openai>=1.2.1",
     "openmetadata-ingestion>=1.12.5.3",
     "python-dotenv>=1.2.2",
     "slack-bolt>=1.28.0",
